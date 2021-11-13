@@ -1,60 +1,115 @@
 import socket
 import pandas as pd
+import threading
+import sys
 
 host = '127.0.0.1'
 port = 7734
 
-
-
-
 class Server:
     def __init__(self):
         self.PORT = 7734
-        self.RFC_Table = pd.DataFrame(columns = ["RFC", "TITLE", 'HOSTNAME'])
+        self.RFC_Table = pd.DataFrame(columns = ["RFC", "TITLE", 'HOSTNAME',"PORT"])
         self.Peers = pd.DataFrame(columns = ['HOSTNAME', 'PORT'])
+        self.errors = {200:"OK",400:"Bad Request",404:"Not Found",500:"P2PCI version not supported"}
 
     def Active(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((host, port))
-        run_loop = True
-        while run_loop:
-            self.sock.listen()
+        self.sock.listen()
+        
+        run = True
+        while run:
+            # user_input = input()
+            # if user_input == "Q":
+            #     break
+            #     # sys.exit(0)
             conn, addr = self.sock.accept()
-
-            print(f"[CONNECTION] HOST: {addr} Connected")
-
-            while True:
-                data = conn.recv(40000).decode("utf-8")
-                if data == "Q":
-                    run_loop = False
-                    break
-                data_s = data.split("|")
-
-                if data_s[0] == 'ACTIVE':
-                    self.AddPeer(data_s[1], data_s[2:])
+            thread = threading.Thread(target=self.ClientConnected, args=(conn, addr))
+            thread.start()
+            print(f"[ACTIVE CONNECTIONS] {threading.activeCount() - 1}")
+            # run = False
+            
+        print(self.Peers)        
         print(self.RFC_Table)
-        self.sock.close()
 
+    def ClientConnected(self,conn,addr):
+        while True:
+            data = conn.recv(100000).decode("utf-8")
+            if data == "Q":
+                run_loop = False
+                break
+            commands = data.split("|")
+            for comd in commands:
+                # print(cmd)
+                cmd = comd.split("\n") 
+                if cmd[0] == 'ACTIVE':
+                    self.AddPeer(cmd)
+                    
+                if cmd[0].split(" ")[0] == "ADD":
+                    resp = self.AddRFC(cmd)
+                    print()
+                    print(resp)
+                    r_data = bytes(resp, 'utf-8')
+                    conn.sendall(r_data)
                 
+                if cmd[0].split(" ")[0] == "LOOKUP":
+                    resp = self.LookUp(cmd)
+                    print()
+                    print(resp)
+                    r_data = bytes(resp, 'utf-8')
+                    conn.sendall(r_data)
+                
+                if cmd[0].split(" ")[0] == "LIST":
+                    resp = self.RFCList(cmd)
+                    print()
+                    print(resp)
+                    r_data = bytes(resp, 'utf-8')
+                    conn.sendall(r_data)
+                    
+        conn.close()
+        
+    def AddPeer(self, cmd):
+        h = cmd[1].split(":")[1]
+        p = cmd[2].split(":")[1]
+        self.Peers.loc[len(self.Peers)] = [host,port]
+    
+    def AddRFC(self,cmd):
+        rfc = cmd[0].split(" ")[1].split("-")[1]
+        v = cmd[0].split(" ")[2]
+        h = cmd[1].split(":")[1]
+        p = cmd[2].split(":")[1]
+        title = cmd[3].split(":")[1]
+        code = 200
+        resp = v + " " + str(code) + " " + self.errors[code] + "\n"
+        resp += "RFC " + str(rfc) + " " + str(title) + " " + str(h) + " " + str(p) + "\n"
+        self.RFC_Table.loc[len(self.RFC_Table)] = [rfc,title,h,p]
+        return resp
 
+    def LookUp(self,cmd):
+        print("LOOKUP")
+        rfc = cmd[0].split(" ")[1].split("-")[1]
+        v = cmd[0].split(" ")[2]
+        h = cmd[1].split(":")[1]
+        p = cmd[2].split(":")[1]
+        lookup_rfc = self.RFC_Table.loc[self.RFC_Table['RFC'] == rfc]
+        resp = ""
+        if len(lookup_rfc) > 0:
+            code = 200
+            resp = v + " " + str(code) + " " + self.errors[code] + "\n"
+            for row in lookup_rfc.values:
+                 resp += "RFC " + str(row[0]) + " " + str(row[1]) + " " + str(row[2]) + " " + str(row[3]) + "\n"
+        return resp
 
-    def AddPeer(self, hostport, rfcs):
-        print("IN ADDPEER")
-        self.Peers.append(hostport.split(','))
-        for row in rfcs:
-            print(row)
-            new_rfc = row.split(',')
-            self.RFC_Table.append([new_rfc[0], new_rfc[1], hostport.split(',')[0]])
-
-
-    def UpdateList(self):
-        pass
-
-    def LookUp_RFC_ID(self):
-        pass
-
-    def Send_List(self):
-        pass
+    def RFCList(self,cmd):
+        lookup_rfc = self.RFC_Table
+        v = cmd[0].split(" ")[2]
+        if len(lookup_rfc) > 0:
+            code = 200
+            resp = v + " " + str(code) + " " + self.errors[code] + "\n"
+            for row in lookup_rfc.values:
+                 resp += "RFC " + str(row[0]) + " " + str(row[1]) + " " + str(row[2]) + " " + str(row[3]) + "\n"
+        return resp
 
 
 S1 = Server()
