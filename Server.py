@@ -1,7 +1,8 @@
 import socket
 import pandas as pd
 import threading
-import sys
+import signal
+import os
 
 host = '127.0.0.1'
 port = 7734
@@ -12,26 +13,25 @@ class Server:
         self.RFC_Table = pd.DataFrame(columns = ["RFC", "TITLE", 'HOSTNAME',"PORT"])
         self.Peers = pd.DataFrame(columns = ['HOSTNAME', 'PORT'])
         self.errors = {200:"OK",400:"Bad Request",404:"Not Found",500:"P2PCI version not supported"}
+        
+    def signal_handler(sig, frame):
+        print('You pressed Ctrl+C!')
+        os._exit(0)
 
     def Active(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((host, port))
         self.sock.listen()
-        
+        signal.signal(signal.SIGINT, self.signal_handler)
         run = True
         while run:
-            # user_input = input()
-            # if user_input == "Q":
-            #     break
-            #     # sys.exit(0)
             conn, addr = self.sock.accept()
             thread = threading.Thread(target=self.ClientConnected, args=(conn, addr))
             thread.start()
             print(f"[ACTIVE CONNECTIONS] {threading.activeCount() - 1}")
-            # run = False
             
-        print(self.Peers)        
-        print(self.RFC_Table)
+        # print(self.Peers)        
+        # print(self.RFC_Table)
 
     def ClientConnected(self,conn,addr):
         while True:
@@ -41,7 +41,6 @@ class Server:
                 break
             commands = data.split("|")
             for comd in commands:
-                # print(cmd)
                 cmd = comd.split("\n") 
                 if cmd[0] == 'ACTIVE':
                     self.AddPeer(cmd)
@@ -87,7 +86,7 @@ class Server:
         return resp
 
     def LookUp(self,cmd):
-        print("LOOKUP")
+        # print("LOOKUP")
         rfc = cmd[0].split(" ")[1].split("-")[1]
         v = cmd[0].split(" ")[2]
         h = cmd[1].split(":")[1]
@@ -99,6 +98,9 @@ class Server:
             resp = v + " " + str(code) + " " + self.errors[code] + "\n"
             for row in lookup_rfc.values:
                  resp += "RFC " + str(row[0]) + " " + str(row[1]) + " " + str(row[2]) + " " + str(row[3]) + "\n"
+        elif len(lookup_rfc) == 0:
+            code = 404
+            resp = v + " " + str(code) + " " + self.errors[code] + "\n"
         return resp
 
     def RFCList(self,cmd):
