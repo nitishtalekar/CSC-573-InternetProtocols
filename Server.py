@@ -16,20 +16,19 @@ class Server:
         self.errors = {200:"OK",400:"Bad Request",404:"Not Found",500:"P2PCI version not supported"}
         
     def signal_handler(sig, frame):
-        print('You pressed Ctrl+C!')
         os._exit(0)
 
     def Active(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((host, port))
         self.sock.listen()
-        # signal.signal(signal.SIGINT, self.sigint_handler)
+        
         run = True
         while run:
             conn, addr = self.sock.accept()
             thread = threading.Thread(target=self.ClientConnected, args=(conn, addr))
             thread.start()
-            print(f"[ACTIVE CONNECTIONS] {threading.activeCount() - 1}")
+            print(f"[ACTIVE CONNECTIONS]    {threading.activeCount() - 1}")
             
     def ClientConnected(self,conn,addr):
         while True:
@@ -37,39 +36,51 @@ class Server:
             if data == "Q":
                 run_loop = False
                 break
-            commands = data.split("|")
+            commands = data.split("|")[:-1]
+            resp = ""
             for comd in commands:
-                cmd = comd.split("\n") 
+                cmd = comd.split("\n")
                 if cmd[0] == 'ACTIVE':
-                    self.AddPeer(cmd)
-                    
+                    print("[ACTIVE]     REQUEST")
+                    resp = self.AddPeer(cmd)
+                if cmd[0] == 'CLOSE':
+                    print("[CLOSE]     REQUEST")   
+                    resp = self.ClosePeer(cmd)                 
                 if cmd[0].split(" ")[0] == "ADD":
+                    print("[ADD]     REQUEST")
                     resp = self.AddRFC(cmd)
-                    print()
-                    print(resp)
-                    r_data = bytes(resp, 'utf-8')
-                    conn.sendall(r_data)
-                
+                    # print(resp)                
                 if cmd[0].split(" ")[0] == "LOOKUP":
+                    print("[LOOKUP]     REQUEST")
                     resp = self.LookUp(cmd)
-                    print()
-                    print(resp)
-                    r_data = bytes(resp, 'utf-8')
-                    conn.sendall(r_data)
-                
+                    # print(resp)            
                 if cmd[0].split(" ")[0] == "LIST":
+                    print("[LIST]     REQUEST")
                     resp = self.RFCList(cmd)
-                    print()
-                    print(resp)
-                    r_data = bytes(resp, 'utf-8')
-                    conn.sendall(r_data)
-                    
+                    # print(resp)
+                r_data = bytes(resp, 'utf-8')
+                conn.sendall(r_data)
+                print(comd)
+                print()
         conn.close()
+        
+    def ClosePeer(self, cmd):
+        h = cmd[1].split(":")[1]
+        self.Peers = self.Peers[self.Peers.HOSTNAME != h]
+        self.RFC_Table = self.RFC_Table[self.RFC_Table.HOSTNAME != h]
+        code = 200
+        resp = str(code) + " " + self.errors[code] + "\n"
+        resp += "CONNECTION CLOSED"
+        return resp
         
     def AddPeer(self, cmd):
         h = cmd[1].split(":")[1]
         p = cmd[2].split(":")[1]
-        self.Peers.loc[len(self.Peers)] = [host,port]
+        self.Peers.loc[len(self.Peers)] = [h,p]
+        code = 200
+        resp = str(code) + " " + self.errors[code] + "\n"
+        resp += "CONNECTED TO SERVER"
+        return resp
     
     def AddRFC(self,cmd):
         rfc = cmd[0].split(" ")[1].split("-")[1]
@@ -79,12 +90,11 @@ class Server:
         title = cmd[3].split(":")[1]
         code = 200
         resp = v + " " + str(code) + " " + self.errors[code] + "\n"
-        resp += "RFC " + str(rfc) + " " + str(title) + " " + str(h) + " " + str(p) + "\n"
+        resp += "RFC " + str(rfc) + " " + str(title) + " " + str(h) + " " + str(p)
         self.RFC_Table.loc[len(self.RFC_Table)] = [rfc,title,h,p]
         return resp
 
     def LookUp(self,cmd):
-        # print("LOOKUP")
         rfc = cmd[0].split(" ")[1].split("-")[1]
         v = cmd[0].split(" ")[2]
         h = cmd[1].split(":")[1]
