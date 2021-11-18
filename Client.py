@@ -81,6 +81,9 @@ class Client:
         return True
 
     def Add(self, rfc_no , rfc_title , v):
+        self.RFC_list.loc[len(self.RFC_list)] = [str(rfc_no),rfc_title]
+        print(self.RFC_list)
+        print("RFCLST")
         s = "ADD RFC-" + str(rfc_no) + " P2PCI/" + str(v) + "\nHost:" + str(self.HOSTNAME) + "\nPort:" + str(self.PORT) + "\nTitle:" + str(rfc_title) + "|"
         print(s)
         print()
@@ -108,6 +111,7 @@ class Client:
             conn, addr = self.sock_rfc.accept()
             thread = threading.Thread(target=self.Send, args=(conn, addr))
             thread.start()
+            
         
     def Get(self,rfc_no,get_host,get_port,v):
         self.get_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -131,9 +135,11 @@ class Client:
                 resp = self.SendRFC(cmd)
                 print()
                 print(resp)
+                print("HIE")
                 r_data = bytes(resp, 'utf-8')
                 conn.sendall(r_data)
-        # conn.close()
+        print("CLOSE CONN")
+        conn.close()
     
     def SendRFC(self,cmd):
         rfc = cmd[0].split(" ")[1].split("-")[1]

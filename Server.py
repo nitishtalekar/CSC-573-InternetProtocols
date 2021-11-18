@@ -3,6 +3,7 @@ import pandas as pd
 import threading
 import signal
 import os
+import time
 
 host = '127.0.0.1'
 port = 7734
@@ -22,7 +23,7 @@ class Server:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((host, port))
         self.sock.listen()
-        signal.signal(signal.SIGINT, self.signal_handler)
+        # signal.signal(signal.SIGINT, self.sigint_handler)
         run = True
         while run:
             conn, addr = self.sock.accept()
@@ -30,9 +31,6 @@ class Server:
             thread.start()
             print(f"[ACTIVE CONNECTIONS] {threading.activeCount() - 1}")
             
-        # print(self.Peers)        
-        # print(self.RFC_Table)
-
     def ClientConnected(self,conn,addr):
         while True:
             data = conn.recv(100000).decode("utf-8")

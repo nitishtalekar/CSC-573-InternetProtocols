@@ -2,6 +2,7 @@ import Client as C
 import pandas as pd
 import threading
 import sys
+import os
 
 HOSTNAME = '127.0.0.3'
 PORT = 5678
