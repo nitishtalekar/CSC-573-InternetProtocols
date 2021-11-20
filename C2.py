@@ -8,12 +8,13 @@ import socket
 HOSTNAME = socket.gethostname()
 PORT = 5678
 OS = "Mac OS 10.6"
+path = "C2"
 
-C2 = C.Client(HOSTNAME,PORT,OS)
+C2 = C.Client(HOSTNAME,PORT,OS, path)
 RFC = [
-        ['783', 'THE TFTP PROTOCOL (REVISION 2)',"CONTENT CONTENT 783"], 
-        ['792', 'INTERNET CONTROL MESSAGE PROTOCOL',"CONTENT CONTENT 792"], 
-        ['854', 'TELNET PROTOCOL SPECIFICATION',"CONTENT CONTENT 854"]
+        ['783', 'THE TFTP PROTOCOL (REVISION 2)', os.path.join(path, "783.txt")], 
+        ['792', 'INTERNET CONTROL MESSAGE PROTOCOL', os.path.join(path, "792.txt")], 
+        ['854', 'TELNET PROTOCOL SPECIFICATION', os.path.join(path, "854.txt")]
     ]
 
 C2.Awake(RFC)

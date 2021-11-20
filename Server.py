@@ -6,7 +6,7 @@ import os
 import time
 
 # host = '127.0.0.1'
-SERVER_HOST = socket.gethostname()
+host = socket.gethostname()
 port = 7734
 
 class Server:

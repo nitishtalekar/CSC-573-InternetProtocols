@@ -3,6 +3,7 @@ import pandas as pd
 import threading
 import signal
 from datetime import datetime, date
+import os
 
 
 # SERVER_HOST = "127.0.0.1"
@@ -10,13 +11,14 @@ SERVER_HOST = socket.gethostname()
 SERVER_PORT = 7734
 
 class Client:
-    def __init__(self, hostname, port,os):
+    def __init__(self, hostname, port,os, path):
         self.HOSTNAME = hostname
         self.PORT = port
         self.OS = os
         self.RFC_list = pd.DataFrame(columns = ["RFC", "TITLE","CONTENT","MODIFY","LENGTH","TYPE","VERSION"])
         self.status = False
         self.errors = {200:"OK",400:"Bad Request",404:"Not Found",500:"P2PCI version not supported"}
+        self.path = path
 
     def Awake(self, RFC):
         self.status = True
@@ -36,7 +38,7 @@ class Client:
         
         for row in RFC:
             mod = datetime.now().strftime("%a, %d %b %Y %H:%M:%S") + " GMT"
-            self.Add(row[0],row[1],row[2],mod,len(row[2]),"text/text",1.0)
+            self.Add(row[0],row[1],row[2],mod,len(open(row[2]).read()),"text/text",1.0)
             print("[ADD]      RESPONSE")
             data = self.sock.recv(100000).decode("utf-8")
             print(data)
@@ -84,7 +86,7 @@ class Client:
             self.Add(rfc_no,rfc_title,rfc_content,mod,len(rfc_content),"text/text",version)
             print('[ADD]      REQUEST SENT')
             data = self.sock.recv(100000).decode("utf-8")
-            print()
+            print("AaaaAAAAAAAA")
             print("[ADD]      RESPONSE")
             print(data)
         if cmd == 4:
@@ -101,7 +103,7 @@ class Client:
             self.Add(rfc_no,rfc_title,rfc_content,mod,rfc_length,rfc_type,version)
             print('[ADD]      REQUEST SENT')
             data = self.sock.recv(100000).decode("utf-8")
-            print()
+            print("asdasadsadsadadsa")
             print("[ADD]      RESPONSE")
             print(data)
         return True
@@ -184,7 +186,8 @@ class Client:
             resp += "Content-Length: " + str(s_rfc[4]) + "\n"
             resp += "Content-Type: " + str(s_rfc[5]) + "\n"
             resp += "DATA: RFC " + str(s_rfc[0]) + " / " + str(s_rfc[1]) + "|\n"
-            resp += "{" + str(s_rfc[2]) + "}"
+            # resp += "{" + str(s_rfc[2]) + "}"
+            resp += "{" + open(s_rfc[2]).read() + "}"
         elif len(send_rfc) == 0:
             code = 404
             resp = v + " " + str(code) + " " + self.errors[code] + "\n"
@@ -198,10 +201,17 @@ class Client:
         rfc_type = data[5].split(":",1)[1][1:]
         rfc_no = data[6].split(":",1)[1].split(" / ")[0][1:].split(" ")[1]
         rfc_title = data[6].split(":",1)[1].split(" / ")[1]
-        rfc_content = data[7][1:-1]
-        self.RFC_list.loc[len(self.RFC_list)] = [str(rfc_no),rfc_title,rfc_content,mod,str(rfc_length),rfc_type,v]
+        # rfc_content = data[7][1:-1]
+
+        rfc_path = os.path.join(self.path,  str(rfc_no)+".txt")
+        with open(rfc_path, 'w') as f:
+            f.write(data[7][1:-1])
+
+
+        self.RFC_list.loc[len(self.RFC_list)] = [str(rfc_no), rfc_title, rfc_path, mod,str(rfc_length), rfc_type, v]
+
         print("[ADD]    RFC ADDED TO SYSTEM")
-        return rfc_no,rfc_title,rfc_content,mod,rfc_length,rfc_type,v
+        return rfc_no,rfc_title,rfc_path,mod,rfc_length,rfc_type,v
         
         
         
