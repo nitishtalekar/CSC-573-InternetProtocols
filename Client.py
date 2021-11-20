@@ -5,7 +5,8 @@ import signal
 from datetime import datetime, date
 
 
-SERVER_HOST = "127.0.0.1"
+# SERVER_HOST = "127.0.0.1"
+SERVER_HOST = socket.gethostname()
 SERVER_PORT = 7734
 
 class Client:

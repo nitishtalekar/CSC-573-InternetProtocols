@@ -3,8 +3,10 @@ import pandas as pd
 import threading
 import signal
 import os
+import socket
 
-HOSTNAME = '127.0.0.2'
+# HOSTNAME = '127.0.0.2'
+HOSTNAME = socket.gethostname()
 PORT = 8081
 OS = "Windows OS 11.6"
 

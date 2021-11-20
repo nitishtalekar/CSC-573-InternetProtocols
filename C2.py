@@ -2,8 +2,10 @@ import Client as C
 import pandas as pd
 import threading
 import os
+import socket
 
-HOSTNAME = '127.0.0.3'
+# HOSTNAME = '127.0.0.3'
+HOSTNAME = socket.gethostname()
 PORT = 5678
 OS = "Mac OS 10.6"
 
