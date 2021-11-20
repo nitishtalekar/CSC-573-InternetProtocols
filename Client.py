@@ -38,6 +38,8 @@ class Client:
         
         for row in RFC:
             mod = datetime.now().strftime("%a, %d %b %Y %H:%M:%S") + " GMT"
+            print("ROWWWWW")
+            print(row)
             self.Add(row[0],row[1],row[2],mod,len(open(row[2]).read()),"text/text",1.0)
             print("[ADD]      RESPONSE")
             data = self.sock.recv(100000).decode("utf-8")

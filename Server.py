@@ -92,6 +92,9 @@ class Server:
         code = 200
         resp = v + " " + str(code) + " " + self.errors[code] + "\n"
         resp += "RFC " + str(rfc) + " " + str(title) + " " + str(h) + " " + str(p)
+        print("TIT")
+        print(p)
+        print(h)
         self.RFC_Table.loc[len(self.RFC_Table)] = [rfc,title,h,p]
         return resp
 
