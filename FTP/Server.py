@@ -16,24 +16,30 @@ class Server:
 
     def Active(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((self.HOST, self.PORT))
         
         run = True
         print(f"[SERVER] ACTIVELY LISTENING AT {self.HOST} ON {self.PORT}")
+        try:
+
+            while run:
+                data, _ = self.sock.recvfrom(4096)
+                # print(data)
+                with open(self.FILE_OUTPUT, 'a+') as F_O:
+                    F_O.write(str(data.decode('utf-8')))
 
 
-        while run:
-            data, _ = self.sock.recvfrom(4096)
-            # print(data)
-            with open(self.FILE_OUTPUT, 'a+') as F_O:
-                F_O.write(str(data.decode('utf-8')))
+                # conn, addr = self.sock.recvfrom(1024)
 
-
-            # conn, addr = self.sock.recvfrom(1024)
-
-            # thread = threading.Thread(target=self.ClientConnected, args=(conn, addr))
-            # thread.start()
-            # print(f"[ACTIVE CONNECTIONS]    {threading.activeCount() - 1}")
+                # thread = threading.Thread(target=self.ClientConnected, args=(conn, addr))
+                # thread.start()
+                # print(f"[ACTIVE CONNECTIONS]    {threading.activeCount() - 1}")
+        except KeyboardInterrupt:
+            print(f"closing connection to {self.HOST}.")
+            # self.sock.shutdown(socket.SHUT_RDWR)
+            self.sock.close()
+            sys.exit()
             
 
      
