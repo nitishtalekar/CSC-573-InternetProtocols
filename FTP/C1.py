@@ -18,6 +18,7 @@ N = int(sys.argv[4])
 MSS = int(sys.argv[5])
 
 C1 = C.Client(HOSTNAME, PORT, SERVER_HOST, SERVER_PORT, FILE_INPUT, N, MSS)
+print(f'Client1={C1}')
 C1.Awake()
 C1.rdt_send()
 
