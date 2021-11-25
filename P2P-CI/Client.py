@@ -38,9 +38,7 @@ class Client:
         
         for row in RFC:
             mod = datetime.now().strftime("%a, %d %b %Y %H:%M:%S") + " GMT"
-            print("ROWWWWW")
-            print(row)
-            self.Add(row[0],row[1],row[2],mod,len(open(row[2]).read()),"text/text",1.0)
+            self.Add(row[0],row[1],row[2],mod,len(open(row[2]).read()),"text/text","P2PCI/"+row[3])
             print("[ADD]      RESPONSE")
             data = self.sock.recv(100000).decode("utf-8")
             print(data)
@@ -88,26 +86,26 @@ class Client:
             self.Add(rfc_no,rfc_title,rfc_content,mod,len(rfc_content),"text/text",version)
             print('[ADD]      REQUEST SENT')
             data = self.sock.recv(100000).decode("utf-8")
-            print("AaaaAAAAAAAA")
             print("[ADD]      RESPONSE")
             print(data)
         if cmd == 4:
             rfc_no = int(input("\n[INPUT] \n ENTER RFC NUMBER:"))
             rfc_host = input("\n[INPUT] \n ENTER HOSTNAME:")
             rfc_port = int(input("\n[INPUT] \n ENTER PORT NUMBER:"))
-            self.Get(rfc_no,rfc_host,rfc_port,version)
-            print('[GET]      REQUEST SENT')
-            data = self.get_sock.recv(100000).decode("utf-8")
-            print()
-            print("[GET]      RESPONSE")
-            print(data)
-            rfc_no,rfc_title,rfc_content,mod,rfc_length,rfc_type,version = self.AddGet(data)
-            self.Add(rfc_no,rfc_title,rfc_content,mod,rfc_length,rfc_type,version)
-            print('[ADD]      REQUEST SENT')
-            data = self.sock.recv(100000).decode("utf-8")
-            print("asdasadsadsadadsa")
-            print("[ADD]      RESPONSE")
-            print(data)
+            err = self.Get(rfc_no,rfc_host,rfc_port,version)
+            if err:
+                print('[GET]      REQUEST SENT')
+                data = self.get_sock.recv(100000).decode("utf-8")
+                print()
+                print("[GET]      RESPONSE")
+                print(data)
+                rfc_no,rfc_title,rfc_content,mod,rfc_length,rfc_type,version = self.AddGet(data)
+                if rfc_no != 000:
+                    self.Add(rfc_no,rfc_title,rfc_content,mod,rfc_length,rfc_type,version)
+                    print('[ADD]      REQUEST SENT')
+                    data = self.sock.recv(100000).decode("utf-8")
+                    print("[ADD]      RESPONSE")
+                    print(data)
         return True
 
     def Add(self, rfc_no , rfc_title , rfc_content, mod,  rfc_length, rfc_type, v):
@@ -132,11 +130,19 @@ class Client:
         
     def Get(self,rfc_no,get_host,get_port,v):
         self.get_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.get_sock.connect((get_host, get_port))
-        s = "GET RFC-" + str(rfc_no) + " P2PCI/" + str(v) + "\nHost:" + str(get_host) + "\nOS:" + str(self.OS) + "|"
+        s = ""
+        try:
+            self.get_sock.connect((get_host, get_port))
+            s = "GET RFC-" + str(rfc_no) + " P2PCI/" + str(v) + "\nHost:" + str(get_host) + "\nOS:" + str(self.OS) + "|"
+            data = bytes(s, 'utf-8')
+            self.get_sock.sendall(data)
+            return True
+        except:
+            code = 400
+            s = "P2PCI/" + str(v) + " " + str(code) + " " + self.errors[code] + "\n"
+            print(s)
+            return False
         # print(s)
-        data = bytes(s, 'utf-8')
-        self.get_sock.sendall(data)
         # self.get_sock.close()
     
     def Logout(self):
@@ -177,9 +183,14 @@ class Client:
         h = cmd[1].split(":")[1]
         os = cmd[2].split(":")[1]
         send_rfc = self.RFC_list.loc[self.RFC_list['RFC'] == rfc]
-        s_rfc = send_rfc.iloc[0]
         resp = ""
         if len(send_rfc) > 0:
+            send_rfc = send_rfc.loc[send_rfc['VERSION'] == v]
+            if len(send_rfc) == 0:
+                code = 500
+                resp = v + " " + str(code) + " " + self.errors[code] + "\n"
+                return resp
+            s_rfc = send_rfc.iloc[0]
             code = 200
             resp = v + " " + str(code) + " " + self.errors[code] + "\n"
             resp += "Date: " + datetime.now().strftime("%a, %d %b %Y %H:%M:%S") + " GMT" + "\n"
@@ -198,22 +209,23 @@ class Client:
     def AddGet(self,data):
         data = data.split("\n")
         v = data[0].split(" ")[0].split("/")[1]
-        mod = data[1].split(":",1)[1][1:]
-        rfc_length = data[4].split(":",1)[1][1:]
-        rfc_type = data[5].split(":",1)[1][1:]
-        rfc_no = data[6].split(":",1)[1].split(" / ")[0][1:].split(" ")[1]
-        rfc_title = data[6].split(":",1)[1].split(" / ")[1]
-        # rfc_content = data[7][1:-1]
+        err = data[0].split(" ")[1]
+        if err == "200":
+            mod = data[1].split(":",1)[1][1:]
+            rfc_length = data[4].split(":",1)[1][1:]
+            rfc_type = data[5].split(":",1)[1][1:]
+            rfc_no = data[6].split(":",1)[1].split(" / ")[0][1:].split(" ")[1]
+            rfc_title = data[6].split(":",1)[1].split(" / ")[1]
+            rfc_path = os.path.join(self.path,  str(rfc_no)+".txt")
+            with open(rfc_path, 'w') as f:
+                f.write(data[7][1:-1])
+            self.RFC_list.loc[len(self.RFC_list)] = [str(rfc_no), rfc_title, rfc_path, mod,str(rfc_length), rfc_type, v]
 
-        rfc_path = os.path.join(self.path,  str(rfc_no)+".txt")
-        with open(rfc_path, 'w') as f:
-            f.write(data[7][1:-1])
-
-
-        self.RFC_list.loc[len(self.RFC_list)] = [str(rfc_no), rfc_title, rfc_path, mod,str(rfc_length), rfc_type, v]
-
-        print("[ADD]    RFC ADDED TO SYSTEM")
-        return rfc_no,rfc_title,rfc_path,mod,rfc_length,rfc_type,v
+            print("[ADD]    RFC ADDED TO SYSTEM")
+            return rfc_no,rfc_title,rfc_path,mod,rfc_length,rfc_type,v
+        
+        else:
+            return 000,"","","","","",""
         
         
         

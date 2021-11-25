@@ -12,9 +12,9 @@ path = "C2"
 
 C2 = C.Client(HOSTNAME,PORT,OS, path)
 RFC = [
-        ['783', 'THE TFTP PROTOCOL (REVISION 2)', os.path.join(path, "783.txt")], 
-        ['792', 'INTERNET CONTROL MESSAGE PROTOCOL', os.path.join(path, "792.txt")], 
-        ['854', 'TELNET PROTOCOL SPECIFICATION', os.path.join(path, "854.txt")]
+        ['783', 'THE TFTP PROTOCOL (REVISION 2)', os.path.join(path, "783.txt"),"2"], 
+        ['792', 'INTERNET CONTROL MESSAGE PROTOCOL', os.path.join(path, "792.txt"),"2"], 
+        ['854', 'TELNET PROTOCOL SPECIFICATION', os.path.join(path, "854.txt"),"2"]
     ]
 
 C2.Awake(RFC)

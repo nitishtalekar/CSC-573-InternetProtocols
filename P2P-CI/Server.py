@@ -12,7 +12,7 @@ port = 7734
 class Server:
     def __init__(self):
         self.PORT = 7734
-        self.RFC_Table = pd.DataFrame(columns = ["RFC", "TITLE", 'HOSTNAME',"PORT"])
+        self.RFC_Table = pd.DataFrame(columns = ["RFC", "TITLE", 'HOSTNAME',"PORT","VERSION"])
         self.Peers = pd.DataFrame(columns = ['HOSTNAME', 'PORT'])
         self.errors = {200:"OK",400:"Bad Request",404:"Not Found",500:"P2PCI version not supported"}
         
@@ -92,10 +92,7 @@ class Server:
         code = 200
         resp = v + " " + str(code) + " " + self.errors[code] + "\n"
         resp += "RFC " + str(rfc) + " " + str(title) + " " + str(h) + " " + str(p)
-        print("TIT")
-        print(p)
-        print(h)
-        self.RFC_Table.loc[len(self.RFC_Table)] = [rfc,title,h,p]
+        self.RFC_Table.loc[len(self.RFC_Table)] = [rfc,title,h,p,v]
         return resp
 
     def LookUp(self,cmd):
@@ -104,25 +101,35 @@ class Server:
         h = cmd[1].split(":")[1]
         p = cmd[2].split(":")[1]
         lookup_rfc = self.RFC_Table.loc[self.RFC_Table['RFC'] == rfc]
+                    
         resp = ""
         if len(lookup_rfc) > 0:
+            lookup_rfc = lookup_rfc.loc[lookup_rfc['VERSION'] == v]
+            if len(lookup_rfc) == 0:
+                code = 500
+                resp = v + " " + str(code) + " " + self.errors[code] + "\n"
+                return resp
             code = 200
             resp = v + " " + str(code) + " " + self.errors[code] + "\n"
             for row in lookup_rfc.values:
-                 resp += "RFC " + str(row[0]) + " " + str(row[1]) + " " + str(row[2]) + " " + str(row[3]) + "\n"
+                 resp += "RFC " + str(row[0]) + " " + str(row[1]) + " " + str(row[2]) + " " + str(row[3]) + " " + str(row[4]) + "\n"
         elif len(lookup_rfc) == 0:
             code = 404
             resp = v + " " + str(code) + " " + self.errors[code] + "\n"
         return resp
 
     def RFCList(self,cmd):
-        lookup_rfc = self.RFC_Table
+        # lookup_rfc = self.RFC_Table
         v = cmd[0].split(" ")[2]
+        lookup_rfc = self.RFC_Table.loc[self.RFC_Table['VERSION'] == v]
         if len(lookup_rfc) > 0:
             code = 200
             resp = v + " " + str(code) + " " + self.errors[code] + "\n"
             for row in lookup_rfc.values:
-                 resp += "RFC " + str(row[0]) + " " + str(row[1]) + " " + str(row[2]) + " " + str(row[3]) + "\n"
+                 resp += "RFC " + str(row[0]) + " " + str(row[1]) + " " + str(row[2]) + " " + str(row[3]) + " " + str(row[4]) + "\n"
+        elif len(lookup_rfc) == 0:
+            code = 404
+            resp = v + " " + str(code) + " " + self.errors[code] + "\n"
         return resp
 
 

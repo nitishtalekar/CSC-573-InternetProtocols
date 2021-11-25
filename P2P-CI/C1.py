@@ -14,9 +14,9 @@ path = "C1"
 
 C1 = C.Client(HOSTNAME, PORT, OS, path)
 RFC = [
-        ['20', 'ASCII FORMAT FOR NETWORK INTERCHANGE',os.path.join(path, "20.txt")], 
-        ['42', 'MESSAGE DATA TYPES', os.path.join(path, "42.txt")], 
-        ['768', 'USER DATAGRAM PROTOCOL', os.path.join(path, "768.txt")]
+        ['20', 'ASCII FORMAT FOR NETWORK INTERCHANGE',os.path.join(path, "20.txt"),"1"], 
+        ['42', 'MESSAGE DATA TYPES', os.path.join(path, "42.txt"),"1"], 
+        ['768', 'USER DATAGRAM PROTOCOL', os.path.join(path, "768.txt"),"1"]
     ]
 
 C1.Awake(RFC)
