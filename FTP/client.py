@@ -78,7 +78,7 @@ class Client:
                 self.SEQ_NO += 1
                 data = self.FILE_INPUT.read(self.MSS)
             
-            self.sock.settimeout(0.1)
+            self.sock.settimeout(0.01)
             try:
                 ACK, addr = self.sock.recvfrom(1024)
                 # print(f'ACK: {ACK}')
