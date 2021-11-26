@@ -23,10 +23,10 @@ class Client:
         self.WINDOW = []
         self.WINDOW_SIZE = N
         self.WINDOW_TIMEOUT = []
-        self.TIMEOUT = 4
+        self.TIMEOUT = 3
 
     def __str__(self):
-        return f'Client: {self.HOSTNAME} running on Port: {self.PORT} \nTransmitting File:{self.FILE_INPUT}\nTo Server: {self.SERVER_HOST}:{self.SERVER_PORT}\n'
+        return f'[CLIENT] : {self.HOSTNAME} running on Port: {self.PORT} \n[CLIENT] Transmitting File:{self.FILE_INPUT}\n[CLIENT] To Server: {self.SERVER_HOST}:{self.SERVER_PORT}\n'
     
     def carry_around_add(self, x, y):
         return ((x+y) & 0xffff) + ((x + y) >> 16)
@@ -43,8 +43,10 @@ class Client:
         self.sock.sendto(str.encode(data), (self.SERVER_HOST, self.SERVER_PORT))
 
     def retransmit(self):
+        # print("RETRANSMITTING WINDOW")
         self.WINDOW_TIMEOUT = []
         for data in self.WINDOW:
+            # print(f"Resending : {data[:32]}\t :{int(data[:32],2)}")
             self.send_packet(data)
             self.WINDOW_TIMEOUT.append(time.time())
 
@@ -76,36 +78,38 @@ class Client:
             self.sock.settimeout(1)
             try:
                 ACK, addr = self.sock.recvfrom(1024)
-                print(f'ACK: {ACK}')
+                # print(f'ACK: {ACK}')
                 self.sock.settimeout(0.01)
             except Exception as e:
                 # print(e)
                 if len(self.WINDOW_TIMEOUT) > 0:
+                    # print("RETRANSMITTING 1")
 
                     if (time.time() - self.WINDOW_TIMEOUT[0]) > self.TIMEOUT:
                         packet_timed_out = self.WINDOW[0]
                         # seq_no = packet_timed_out
-                        print(f'Timeout: {int(packet_timed_out[:32], 2)}')
-                        print("RETRANSMITTING")
+                        print(f'[CLIENT] Packet Timeout: {int(packet_timed_out[:32], 2)}')
+                        # print("RETRANSMITTING 2")
                         self.retransmit()
                 continue
 
             try:
-                print(f"MUST RECIEVE ACK for Packet: {int(self.WINDOW[0][:32], 2)}")
+                # print(f"MUST RECIEVE ACK for Packet: {int(self.WINDOW[0][:32], 2)}")
                 ACK = ACK.decode()
-                print(ACK[48:64])
+                # print(ACK[48:64])
                 if ACK[48:64] == self.ACK_TYPE:
-                    while len(self.WINDOW) > 0 and self.WINDOW[0][:32] <= ACK[:32]:
-                        print(f'\n\n{self.WINDOW}')
+                    # while len(self.WINDOW) > 0 and self.WINDOW[0][:32] <= ACK[:32]:
+                    if self.WINDOW[0][:32] == ACK[:32]:
+                        # print(f'\n\n{self.WINDOW}')
                         self.WINDOW.remove(self.WINDOW[0])
-                        print(self.WINDOW)
+                        # print(self.WINDOW)
                         self.WINDOW_TIMEOUT.remove(self.WINDOW_TIMEOUT[0])
             except:
                 continue
         
         data = "EOF"
         self.send_packet(data)
-        print("FILE TRANSFER COMPLETED")
+        print("[CLIENT] FILE TRANSFER COMPLETED")
         self.sock.close()
         self.FILE_INPUT.close()
 
@@ -126,9 +130,9 @@ else:
     SERVER_HOST = 'Aayushs-MBP.lan'
     SERVER_PORT = 7735
     FILE_INPUT = 'input.txt'
-    N = 4
-    MSS = 16
+    N = 8
+    MSS = 512
 
 C1 = Client(HOSTNAME, PORT, SERVER_HOST, SERVER_PORT, FILE_INPUT, N, MSS)
-print(f'Client1={C1}')
+print(C1)
 C1.rdt_send()
