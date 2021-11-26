@@ -49,7 +49,7 @@ class Server:
             self.WINDOW_TIMEOUT.append(time.time())
 
     def rdt_rcv(self):
-        self.sock.settimeout(10)
+        self.sock.settimeout(5)
         try:
             while True:
                 data, CLIENT_ADDR = self.sock.recvfrom(2048)
@@ -85,7 +85,7 @@ class Server:
                             self.send_packet(header, CLIENT_ADDR)
                             self.SEQ_NO += 1
                         else:
-                            print(f'[SERVER] PACKET DROPPED :{data[:32]} \t :{int(data[:32],2)}')
+                            print(f'[SERVER] PACKET DROPPED: {data[:32]} \t :{int(data[:32],2)}')
 
         except Exception as e:
             # print(e)
@@ -105,15 +105,15 @@ class Server:
 
 
 
-if len(sys.argv) > 1:
-    # FROM COMMAND LINE
-    PORT = int(sys.argv[1])
-    FILE_OUTPUT = sys.argv[2]
-    PROB_LOSS_SERVICE = float(sys.argv[3])
-else:
-    PORT = 7735
-    FILE_OUTPUT = 'output.txt'
-    PROB_LOSS_SERVICE = 0.01
+# if len(sys.argv) > 1:
+#     # FROM COMMAND LINE
+#     PORT = int(sys.argv[1])
+#     FILE_OUTPUT = sys.argv[2]
+#     PROB_LOSS_SERVICE = float(sys.argv[3])
+# else:
+#     PORT = 7735
+#     FILE_OUTPUT = 'output.txt'
+#     PROB_LOSS_SERVICE = 0.01
 
-S1 = Server(PORT, FILE_OUTPUT, PROB_LOSS_SERVICE)
-S1.rdt_rcv()
+# S1 = Server(PORT, FILE_OUTPUT, PROB_LOSS_SERVICE)
+# S1.rdt_rcv()

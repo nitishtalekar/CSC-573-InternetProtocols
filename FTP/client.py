@@ -1,6 +1,6 @@
 import socket
 import time
-import sys
+import os
 
 class Client:
     def __init__(self, HOSTNAME, PORT, SERVER_HOST, SERVER_PORT, FILE_INPUT, N, MSS):
@@ -8,7 +8,7 @@ class Client:
         self.PORT = PORT
         self.SERVER_HOST = SERVER_HOST
         self.SERVER_PORT = SERVER_PORT
-        self.FILE_INPUT = FILE_INPUT
+        self.FILE_PATH = FILE_INPUT
         self.N = N
         self.MSS = MSS
         self.BUFFER = []
@@ -16,7 +16,7 @@ class Client:
         self.ACK_TYPE = '1010101010101010'
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
-            self.FILE_INPUT = open(self.FILE_INPUT, "rb")
+            self.FILE_INPUT = open(self.FILE_PATH, "rb")
         except:
             print('FILE NOT FOUND')
         self.SEQ_NO = 0
@@ -27,6 +27,9 @@ class Client:
 
     def __str__(self):
         return f'[CLIENT] {self.HOSTNAME} running on Port: {self.PORT} \n[CLIENT] Transmitting File:{self.FILE_INPUT}\n[CLIENT] To Server: {self.SERVER_HOST}:{self.SERVER_PORT}\n'
+    
+    def file_detail(self):
+        print(f'[CLIENT] SENDING FILE: {self.FILE_PATH} of SIZE: {os.path.getsize(self.FILE_PATH)} Bytes\n\n')
     
     def carry_around_add(self, x, y):
         return ((x+y) & 0xffff) + ((x + y) >> 16)
@@ -116,23 +119,23 @@ class Client:
 
 
 
-HOSTNAME = socket.gethostname()
-PORT = 8081
+# HOSTNAME = socket.gethostname()
+# PORT = 8081
 
-if len(sys.argv) > 1:
-    # FROM COMMAND LINE
-    SERVER_HOST = sys.argv[1]
-    SERVER_PORT = int(sys.argv[2])
-    FILE_INPUT = sys.argv[3]
-    N = int(sys.argv[4])
-    MSS = int(sys.argv[5])
-else:
-    SERVER_HOST = 'Aayushs-MBP.lan'
-    SERVER_PORT = 7735
-    FILE_INPUT = 'input.txt'
-    N = 8
-    MSS = 512
+# if len(sys.argv) > 1:
+#     # FROM COMMAND LINE
+#     SERVER_HOST = sys.argv[1]
+#     SERVER_PORT = int(sys.argv[2])
+#     FILE_INPUT = sys.argv[3]
+#     N = int(sys.argv[4])
+#     MSS = int(sys.argv[5])
+# else:
+#     SERVER_HOST = 'Aayushs-MBP.lan'
+#     SERVER_PORT = 7735
+#     FILE_INPUT = 'input.txt'
+#     N = 8
+#     MSS = 512
 
-C1 = Client(HOSTNAME, PORT, SERVER_HOST, SERVER_PORT, FILE_INPUT, N, MSS)
-print(C1)
-C1.rdt_send()
+# C1 = Client(HOSTNAME, PORT, SERVER_HOST, SERVER_PORT, FILE_INPUT, N, MSS)
+# print(C1)
+# C1.rdt_send()
