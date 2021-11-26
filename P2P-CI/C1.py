@@ -10,13 +10,13 @@ HOSTNAME = socket.gethostname()
 PORT = 8081
 OS = "Windows OS 11.6"
 
-path = "C1"
+PATH = "C1"
 
-C1 = C.Client(HOSTNAME, PORT, OS, path)
+C1 = C.Client(HOSTNAME, PORT, OS, PATH)
 RFC = [
-        ['20', 'ASCII FORMAT FOR NETWORK INTERCHANGE',os.path.join(path, "20.txt"),"1"], 
-        ['42', 'MESSAGE DATA TYPES', os.path.join(path, "42.txt"),"1"], 
-        ['768', 'USER DATAGRAM PROTOCOL', os.path.join(path, "768.txt"),"1"]
+        ['20', 'ASCII FORMAT FOR NETWORK INTERCHANGE',os.path.join(PATH, "20.txt"),"1"], 
+        ['42', 'MESSAGE DATA TYPES', os.path.join(PATH, "42.txt"),"1"], 
+        ['768', 'USER DATAGRAM PROTOCOL', os.path.join(PATH, "768.txt"),"1"]
     ]
 
 C1.Awake(RFC)

@@ -7,6 +7,7 @@ import time
 
 # host = '127.0.0.1'
 host = socket.gethostname()
+# host = "Aayushs-MBP.lan"
 port = 7734
 
 class Server:
@@ -44,20 +45,27 @@ class Server:
                 if cmd[0] == 'ACTIVE':
                     print("[ACTIVE]     REQUEST")
                     resp = self.AddPeer(cmd)
-                if cmd[0] == 'CLOSE':
+                elif cmd[0] == 'CLOSE':
                     print("[CLOSE]     REQUEST")   
                     resp = self.ClosePeer(cmd)                 
-                if cmd[0].split(" ")[0] == "ADD":
+                elif cmd[0].split(" ")[0] == "ADD":
                     print("[ADD]     REQUEST")
                     resp = self.AddRFC(cmd)
                     # print(resp)                
-                if cmd[0].split(" ")[0] == "LOOKUP":
+                elif cmd[0].split(" ")[0] == "LOOKUP":
                     print("[LOOKUP]     REQUEST")
                     resp = self.LookUp(cmd)
                     # print(resp)            
-                if cmd[0].split(" ")[0] == "LIST":
-                    print("[LIST]     REQUEST")
-                    resp = self.RFCList(cmd)
+                elif cmd[0].split(" ")[0] == "LIST":
+                    if cmd[0].split(" ")[1] == "RFC":
+                        print("[LIST]     REQUEST")
+                        resp = self.RFCList(cmd)
+                    if cmd[0].split(" ")[1] == "ALL":
+                        print("[LIST ALL]     REQUEST")
+                        resp = self.RFCListAll(cmd)
+                else:
+                    code = 400
+                    resp = str(code) + " " + self.errors[code] + "\n"
                     # print(resp)
                 r_data = bytes(resp, 'utf-8')
                 conn.sendall(r_data)
@@ -121,10 +129,24 @@ class Server:
     def RFCList(self,cmd):
         # lookup_rfc = self.RFC_Table
         v = cmd[0].split(" ")[2]
-        lookup_rfc = self.RFC_Table.loc[self.RFC_Table['VERSION'] == v]
+        lookup_rfc = self.RFC_Table.loc[self.RFC_Table['VERSION'] == str(v)]
         if len(lookup_rfc) > 0:
             code = 200
             resp = v + " " + str(code) + " " + self.errors[code] + "\n"
+            for row in lookup_rfc.values:
+                 resp += "RFC " + str(row[0]) + " " + str(row[1]) + " " + str(row[2]) + " " + str(row[3]) + " " + str(row[4]) + "\n"
+        elif len(lookup_rfc) == 0:
+            code = 404
+            resp = v + " " + str(code) + " " + self.errors[code] + "\n"
+        return resp
+        
+    def RFCListAll(self,cmd):
+        lookup_rfc = self.RFC_Table
+        # v = cmd[0].split(" ")[2]
+        # lookup_rfc = self.RFC_Table.loc[self.RFC_Table['VERSION'] == str(v)]
+        if len(lookup_rfc) > 0:
+            code = 200
+            resp = str(code) + " " + self.errors[code] + "\n"
             for row in lookup_rfc.values:
                  resp += "RFC " + str(row[0]) + " " + str(row[1]) + " " + str(row[2]) + " " + str(row[3]) + " " + str(row[4]) + "\n"
         elif len(lookup_rfc) == 0:

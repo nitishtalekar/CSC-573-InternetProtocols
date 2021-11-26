@@ -6,8 +6,8 @@ from datetime import datetime, date
 import os
 
 
-# SERVER_HOST = "127.0.0.1"
 SERVER_HOST = socket.gethostname()
+# SERVER_HOST = "Aayushs-MBP.lan"
 SERVER_PORT = 7734
 
 class Client:
@@ -15,7 +15,7 @@ class Client:
         self.HOSTNAME = hostname
         self.PORT = port
         self.OS = os
-        self.RFC_list = pd.DataFrame(columns = ["RFC", "TITLE","CONTENT","MODIFY","LENGTH","TYPE","VERSION"])
+        self.RFC_list = pd.DataFrame(columns = ["RFC","TITLE","CONTENT","MODIFY","LENGTH","TYPE","VERSION"])
         self.status = False
         self.errors = {200:"OK",400:"Bad Request",404:"Not Found",500:"P2PCI version not supported"}
         self.path = path
@@ -38,19 +38,19 @@ class Client:
         
         for row in RFC:
             mod = datetime.now().strftime("%a, %d %b %Y %H:%M:%S") + " GMT"
-            self.Add(row[0],row[1],row[2],mod,len(open(row[2]).read()),"text/text","P2PCI/"+row[3])
+            self.Add(row[0],row[1],row[2],mod,len(open(row[2]).read()),"text/text",row[3])
             print("[ADD]      RESPONSE")
             data = self.sock.recv(100000).decode("utf-8")
             print(data)
             print()
 
     def Interface(self):
-        cmd = int(input("\n[INPUT] \n 1. LOOKUP | 2.LIST | 3.ADD | 4.GET | 5.QUIT\n  SELECT COMMAND:"))
-        if cmd > 5 or cmd < 0:
+        cmd = int(input("\n[INPUT] \n 1. LOOKUP | 2.LIST | 3.LIST ALL | 4.ADD | 5.GET | 6.QUIT\n  SELECT COMMAND:"))
+        if cmd > 6 or cmd < 0:
             print()
             print("INVALID CHOICE")
             return False
-        if cmd == 5:
+        if cmd == 6:
             print('[CLOSE]      REQUEST SENT')
             self.Logout()
             data = self.sock.recv(100000).decode("utf-8")
@@ -59,19 +59,31 @@ class Client:
             print(data)
             self.sock.close()
             return "Quit"
+        if cmd == 3:
+            self.ListAll()
+            print('[LIST ALL]      REQUEST SENT')
+            data = self.sock.recv(100000).decode("utf-8")
+            print()
+            print("[LIST ALL]      RESPONSE")
+            print(data)
+            return True
         version = int(input("\n[INPUT] \n 1.P2PCI/1.0 | 2.P2PCI/2.0 | 3.P2PCI/3.0 \n  SELECT VERSION:"))
         if version > 3 or version < 0:
             print()
             print("INVALID CHOICE PLEASE TRY AGAIN")
             return False
         if cmd == 1:
-            rfc_no = int(input("\n[INPUT] \n ENTER RFC NUMBER:"))
-            self.Lookup(rfc_no,version)
-            print('[LOOKUP]      REQUEST SENT')
-            data = self.sock.recv(100000).decode("utf-8")
-            print()
-            print("[LOOKUP]      RESPONSE")
-            print(data)
+            try:
+                rfc_no = int(input("\n[INPUT] \n ENTER RFC NUMBER:"))
+                self.Lookup(rfc_no,version)
+                print('[LOOKUP]      REQUEST SENT')
+                data = self.sock.recv(100000).decode("utf-8")
+                print()
+                print("[LOOKUP]      RESPONSE")
+                print(data)
+            except:
+                print("INVALID INPUT")
+                return False
         if cmd == 2:
             self.List(version)
             print('[LIST]      REQUEST SENT')
@@ -79,7 +91,8 @@ class Client:
             print()
             print("[LIST]      RESPONSE")
             print(data)
-        if cmd == 3:
+        if cmd == 4:
+            mod = datetime.now().strftime("%a, %d %b %Y %H:%M:%S") + " GMT"
             rfc_no = int(input("\n[INPUT] \n ENTER RFC NUMBER:"))
             rfc_title = input("\n[INPUT] \n ENTER RFC TITLE:")
             rfc_content = input("\n[INPUT] \n ENTER RFC CONTENT:")
@@ -88,28 +101,35 @@ class Client:
             data = self.sock.recv(100000).decode("utf-8")
             print("[ADD]      RESPONSE")
             print(data)
-        if cmd == 4:
-            rfc_no = int(input("\n[INPUT] \n ENTER RFC NUMBER:"))
-            rfc_host = input("\n[INPUT] \n ENTER HOSTNAME:")
-            rfc_port = int(input("\n[INPUT] \n ENTER PORT NUMBER:"))
-            err = self.Get(rfc_no,rfc_host,rfc_port,version)
-            if err:
-                print('[GET]      REQUEST SENT')
-                data = self.get_sock.recv(100000).decode("utf-8")
-                print()
-                print("[GET]      RESPONSE")
-                print(data)
-                rfc_no,rfc_title,rfc_content,mod,rfc_length,rfc_type,version = self.AddGet(data)
-                if rfc_no != 000:
-                    self.Add(rfc_no,rfc_title,rfc_content,mod,rfc_length,rfc_type,version)
-                    print('[ADD]      REQUEST SENT')
-                    data = self.sock.recv(100000).decode("utf-8")
-                    print("[ADD]      RESPONSE")
+        if cmd == 5:
+            try:
+                rfc_no = int(input("\n[INPUT] \n ENTER RFC NUMBER:"))
+                rfc_host = input("\n[INPUT] \n ENTER HOSTNAME:")
+                rfc_port = int(input("\n[INPUT] \n ENTER PORT NUMBER:"))
+                err = self.Get(rfc_no,rfc_host,rfc_port,version)
+                if err:
+                    print('[GET]      REQUEST SENT')
+                    data = self.get_sock.recv(100000).decode("utf-8")
+                    print()
+                    print("[GET]      RESPONSE")
                     print(data)
+                    rfc_no,rfc_title,rfc_content,mod,rfc_length,rfc_type,version = self.AddGet(data)
+                    if rfc_no != 000:
+                        self.Add(rfc_no,rfc_title,rfc_content,mod,rfc_length,rfc_type,version)
+                        print('[ADD]      REQUEST SENT')
+                        data = self.sock.recv(100000).decode("utf-8")
+                        print("[ADD]      RESPONSE")
+                        print(data)
+            except:
+                print("INVALID INPUT")
+                return False
         return True
 
     def Add(self, rfc_no , rfc_title , rfc_content, mod,  rfc_length, rfc_type, v):
-        self.RFC_list.loc[len(self.RFC_list)] = [str(rfc_no),rfc_title,rfc_content,mod,str(rfc_length),rfc_type,v]
+        rfc_path = os.path.join(self.path,  str(rfc_no)+".txt")
+        with open(rfc_path, 'w') as f:
+            f.write(rfc_content)
+        self.RFC_list.loc[len(self.RFC_list)] = [str(rfc_no),rfc_title,rfc_path,mod,str(rfc_length),rfc_type,"P2PCI/" + str(v)]
         s = "ADD RFC-" + str(rfc_no) + " P2PCI/" + str(v) + "\nHost:" + str(self.HOSTNAME) + "\nPort:" + str(self.PORT) + "\nTitle:" + str(rfc_title) + "|"
         # print(s)
         # print()
@@ -123,7 +143,13 @@ class Client:
         self.sock.sendall(data)
         
     def List(self,v):
-        s = "LIST ALL" + " P2PCI/" + str(v) + "\nHost:" + str(self.HOSTNAME) + "\nPort:" + str(self.PORT) + "|"
+        s = "LIST RFC" + " P2PCI/" + str(v) + "\nHost:" + str(self.HOSTNAME) + "\nPort:" + str(self.PORT) + "|"
+        # print(s)
+        data = bytes(s, 'utf-8')
+        self.sock.sendall(data)
+    
+    def ListAll(self):
+        s = "LIST ALL" + "\nHost:" + str(self.HOSTNAME) + "\nPort:" + str(self.PORT) + "|"
         # print(s)
         data = bytes(s, 'utf-8')
         self.sock.sendall(data)
@@ -219,7 +245,7 @@ class Client:
             rfc_path = os.path.join(self.path,  str(rfc_no)+".txt")
             with open(rfc_path, 'w') as f:
                 f.write(data[7][1:-1])
-            self.RFC_list.loc[len(self.RFC_list)] = [str(rfc_no), rfc_title, rfc_path, mod,str(rfc_length), rfc_type, v]
+            self.RFC_list.loc[len(self.RFC_list)] = [str(rfc_no), rfc_title, rfc_path, mod,str(rfc_length), rfc_type, "P2PCI/" + str(v)]
 
             print("[ADD]    RFC ADDED TO SYSTEM")
             return rfc_no,rfc_title,rfc_path,mod,rfc_length,rfc_type,v
