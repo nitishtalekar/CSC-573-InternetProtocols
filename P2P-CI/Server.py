@@ -1,13 +1,10 @@
 import socket
 import pandas as pd
 import threading
-import signal
 import os
 import time
 
-# host = '127.0.0.1'
 host = socket.gethostname()
-# host = "Aayushs-MBP.lan"
 port = 7734
 
 class Server:
@@ -16,21 +13,18 @@ class Server:
         self.RFC_Table = pd.DataFrame(columns = ["RFC", "TITLE", 'HOSTNAME',"PORT","VERSION"])
         self.Peers = pd.DataFrame(columns = ['HOSTNAME', 'PORT'])
         self.errors = {200:"OK",400:"Bad Request",404:"Not Found",500:"P2PCI version not supported"}
-        
-    def signal_handler(sig, frame):
-        os._exit(0)
 
     def Active(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((host, port))
         self.sock.listen()
+        print(f"[ACTIVE]    SERVER ACTIVE ON {host} ON {port} \n")
         
-        run = True
-        while run:
+        while True:
             conn, addr = self.sock.accept()
             thread = threading.Thread(target=self.ClientConnected, args=(conn, addr))
             thread.start()
-            print(f"[ACTIVE CONNECTIONS]    {threading.activeCount() - 1}")
+            print(f"[ACTIVE CONNECTIONS]    {threading.activeCount() - 1} \n")
             
     def ClientConnected(self,conn,addr):
         while True:
@@ -50,12 +44,10 @@ class Server:
                     resp = self.ClosePeer(cmd)                 
                 elif cmd[0].split(" ")[0] == "ADD":
                     print("[ADD]     REQUEST")
-                    resp = self.AddRFC(cmd)
-                    # print(resp)                
+                    resp = self.AddRFC(cmd)               
                 elif cmd[0].split(" ")[0] == "LOOKUP":
                     print("[LOOKUP]     REQUEST")
-                    resp = self.LookUp(cmd)
-                    # print(resp)            
+                    resp = self.LookUp(cmd)      
                 elif cmd[0].split(" ")[0] == "LIST":
                     if cmd[0].split(" ")[1] == "RFC":
                         print("[LIST]     REQUEST")
@@ -66,7 +58,6 @@ class Server:
                 else:
                     code = 400
                     resp = str(code) + " " + self.errors[code] + "\n"
-                    # print(resp)
                 r_data = bytes(resp, 'utf-8')
                 conn.sendall(r_data)
                 print(comd)
@@ -127,7 +118,6 @@ class Server:
         return resp
 
     def RFCList(self,cmd):
-        # lookup_rfc = self.RFC_Table
         v = cmd[0].split(" ")[2]
         lookup_rfc = self.RFC_Table.loc[self.RFC_Table['VERSION'] == str(v)]
         if len(lookup_rfc) > 0:
@@ -142,8 +132,6 @@ class Server:
         
     def RFCListAll(self,cmd):
         lookup_rfc = self.RFC_Table
-        # v = cmd[0].split(" ")[2]
-        # lookup_rfc = self.RFC_Table.loc[self.RFC_Table['VERSION'] == str(v)]
         if len(lookup_rfc) > 0:
             code = 200
             resp = str(code) + " " + self.errors[code] + "\n"
