@@ -23,7 +23,7 @@ class Client:
         self.WINDOW = []
         self.WINDOW_SIZE = N
         self.WINDOW_TIMEOUT = []
-        self.TIMEOUT = 3
+        self.TIMEOUT = 0.05
 
     def __str__(self):
         return f'[CLIENT] {self.HOSTNAME} running on Port: {self.PORT} \n[CLIENT] Transmitting File:{self.FILE_INPUT}\n[CLIENT] To Server: {self.SERVER_HOST}:{self.SERVER_PORT}\n'
@@ -78,7 +78,7 @@ class Client:
                 self.SEQ_NO += 1
                 data = self.FILE_INPUT.read(self.MSS)
             
-            self.sock.settimeout(1)
+            self.sock.settimeout(0.1)
             try:
                 ACK, addr = self.sock.recvfrom(1024)
                 # print(f'ACK: {ACK}')

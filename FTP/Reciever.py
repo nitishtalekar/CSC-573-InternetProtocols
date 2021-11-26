@@ -18,9 +18,10 @@ import sys
 PORT = 7735
 FILE_OUTPUT = 'output.txt'
 PROB_LOSS_SERVICE = 0.05
-for i in range(55):
-    print(f"RECIEVING FILE: ITERATION {i+1}")
-    S1 = Server(PORT, FILE_OUTPUT, PROB_LOSS_SERVICE)
-    S1.rdt_rcv()
-    S1.sock.close()
-    print("\n\n\n")
+for i in range(10):
+    for j in range(5):
+        print(f"RECIEVING FILE: ITERATION {i+1}")
+        S1 = Server(PORT, FILE_OUTPUT, PROB_LOSS_SERVICE)
+        S1.rdt_rcv()
+        S1.sock.close()
+        print("\n\n\n")
