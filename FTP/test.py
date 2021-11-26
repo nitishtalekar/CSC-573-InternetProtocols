@@ -6,8 +6,8 @@ from datetime import datetime, date
 import os
 import sys
 import time
-import random
-import struct
+import warnings
+warnings.filterwarnings("ignore")
 
 # SERVER_HOST = "127.0.0.1"
 SERVER_HOST = socket.gethostname()
@@ -23,10 +23,12 @@ class Client:
         self.N = N
         self.MSS = MSS
         self.BUFFER = []
-        self.BUFFER_LENGTH = 64
-        self.WINDOW = []
-        self.TRACK_PACKET = pd.DataFrame()
+        self.BUFFER_LENGTH =24
+        # self.WINDOW = []
         self.SEQUENCE_NUMBER = 0
+        self.WINDOW = pd.DataFrame(columns = ["PACKET", "SEQ_NO", "SENT", "SENT_TS"])
+        self.NEXT_ACK_EXPECTED = 0
+        self.OUTGONE_PACKETS = pd.DataFrame(columns = ["PACKET", "SEQ_NO", "SENT", "SENT_TS"])
 
     def __str__(self):
         return f'{self.HOSTNAME},{self.PORT},{self.SERVER_HOST},{self.SERVER_PORT},{self.FILE_INPUT},{self.N},{self.MSS}'
@@ -55,23 +57,7 @@ class Client:
                         self.BUFFER.append(" ")
                     break
                 # print(f"ADDING BYTE TO BUFFER - {self.BUFFER}")
-                
-    # def checksum(self, raw_data):
-    #     checksum = 0
-    #     data_len = len(raw_data)
-    #     # print(type(raw_data))
-    #     if (data_len % 2):
-    #         data_len += 1
-    #         # print(type(struct.pack('!B', 0)))
-    #         raw_data += struct.pack('!B', 0)
-        
-    #     for i in range(0, data_len, 2):
-    #         w = (raw_data[i] << 8) + (raw_data[i + 1])
-    #         checksum += w
-
-    #     checksum = (checksum >> 16) + (checksum & 0xFFFF)
-    #     checksum = ~checksum & 0xFFFF
-    #     return f'{checksum:016b}'
+                # print("".join(self.BUFFER))
 
     def carry_around_add(self, x, y):
         return ((x+y) & 0xffff) + ((x + y) >> 16)
@@ -99,50 +85,47 @@ class Client:
         data += str(f'0101010101010101') + "|"
         data += str(packet)
 
-        print(data)
-        return data
+        # print(data)
+        return data, self.SEQUENCE_NUMBER - 1
 
     def create_window(self):
         while True:
-            if len(self.WINDOW) < self.N and len(self.BUFFER) >= self.MSS:
-                packet = self.BUFFER[:self.MSS]
+            if len(self.WINDOW) + len(self.OUTGONE_PACKETS) < self.N and len(self.BUFFER) >= self.MSS:
+                data = self.BUFFER[:self.MSS]
                 self.BUFFER = self.BUFFER[self.MSS:]
-                packet = "".join(packet)
-                packet = self.pack_packet(packet)
-                self.WINDOW.append(packet)
-                print(f"CREATING WINDOW PACKET - {self.WINDOW}")
 
-    def checkTime():
-        pass
+                packet = "".join(data)
+                packet, seq = self.pack_packet(packet)
 
-    def socket_send(self,packet):
-        respone_wait = random.choice([1,1,3])
-        # if respone_wait<=2:
-        time.sleep(respone_wait)
-        return random.choice([True,False])
+                self.WINDOW.loc[len(self.WINDOW)] = [packet, seq, False, 0]
+                # print(f"CREATING WINDOW PACKET - {self.WINDOW}")
+                print("".join(data))
+
+
 
     def send_packet(self):
-        i = 0
-        # print(f"IN SEND")
         while True:
-            if len(self.WINDOW) > 0:
-                # print(f"IN SEND")
-                try:
-                    # print(f"SENDING PACKET FROM WINDOW - {self.WINDOW}")
-                    # print(self.WINDOW[0], end="")
-                    packet_to_send = self.WINDOW.pop(0)
-                    # print(f'PACKET SENT = {packet_to_send}')
-                    thread_acks = threading.Thread(target=self.socket_send,args=(packet_to_send,))
-                    thread_acks.start()
+            if len(self.WINDOW) > 0 and len(self.OUTGONE_PACKETS) < self.N:
+                pass
+                # print()
+                # packet_to_send = self.WINDOW.iloc[0, :].values
+                # packet = packet_to_send[0]
+                
 
-                    # print(f"SENT PACKET FROM WINDOW - {self.WINDOW}")
-                    # self.BUFFER = self.BUFFER[self.MSS:]
-                    # print(f"SENT PACKET FROM WINDOW (BUFFER)- {self.BUFFER}")
-                    # time.sleep(1)
-                    i = i + 1
-                except Exception:
-                    continue
+                # packet_series = pd.Series(packet_to_send, index = self.OUTGONE_PACKETS.columns)
+                # # print(packet_series)
+                # self.OUTGONE_PACKETS = self.OUTGONE_PACKETS.append(packet_series, ignore_index=True)
+                # self.WINDOW = self.WINDOW[self.WINDOW.SEQ_NO != packet_to_send[1]]
+                # self.WINDOW.reset_index(drop = True)
+                # print(self.OUTGONE_PACKETS)
+                # df = df[df.line_race != 0]
 
+
+                # self.sock.sendto(str.encode(), (self.SERVER_HOST, self.SERVER_PORT))
+
+
+    def checkTime(self):
+        pass
 
     def gobackn_client(self):
         self.rdts = self.rdt_send()
@@ -154,6 +137,9 @@ class Client:
 
         thread_send_packet = threading.Thread(target=self.send_packet)
         thread_send_packet.start()
+
+        while True:
+            
 
 
             

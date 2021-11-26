@@ -29,16 +29,19 @@ class Server:
 
     def active(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((self.HOST, self.PORT))
         
         run = True
         print(f"[SERVER] ACTIVELY LISTENING AT {self.HOST} ON {self.PORT}")
         try:
             while run:
-                data, _ = self.sock.recvfrom(4096)
-
+                # print('HERE')
+                data, addr = self.sock.recvfrom(4096)
+                # print("HEREE")
+                print(int(data.decode('utf-8').split("|")[0], 2))
                 with open(self.FILE_OUTPUT, 'a+') as F_O:
+                    
                     F_O.write(str(data.decode('utf-8')))
 
 
