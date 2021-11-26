@@ -1,4 +1,3 @@
-from Reciever import PROB_LOSS_SERVICE
 from client import Client
 import socket
 import sys
@@ -31,6 +30,7 @@ PORT = 8081
 
 
 # TASK 1
+print("\n\n-------------TASK 1-------------\n\n")
 
 SERVER_HOST = 'Aayushs-MBP.lan'
 SERVER_PORT = 7735
@@ -67,6 +67,7 @@ plt.savefig('N vs Transfer Delay.png')
 
 
 # # TASK 2
+print("\n\n-------------TASK 2-------------\n\n")
 
 SERVER_HOST =  'Aayushs-MBP.lan'
 SERVER_PORT = 7735
@@ -107,6 +108,7 @@ plt.savefig('MSS vs Transfer Delay.png')
 
 
 # # TASK 3
+print("\n\n-------------TASK 3-------------\n\n")
 
 SERVER_HOST =  'Aayushs-MBP.lan'
 SERVER_PORT = 7735
@@ -141,5 +143,5 @@ canvas = plt.figure(figsize=(12,7))
 plt.xlabel("PROB_LOSS Value")
 plt.ylabel("Data Transfer Delay")
 plt.title("PROB_LOSS vs Transfer Delay")
-plt.plot(PROB_LOSS_SERVICE, average_delay, color = "blue", marker = 'o')
+plt.plot(PROB_LOSS_SERVICE_LIST, average_delay, color = "blue", marker = 'o')
 plt.savefig('PROB_LOSS vs Transfer Delay.png')
