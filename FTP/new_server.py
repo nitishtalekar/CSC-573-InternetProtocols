@@ -18,7 +18,7 @@ class Server:
         self.DATA_TYPE = '0101010101010101'
         self.ACK_TYPE = '1010101010101010'
         self.COMPLETE = False
-        print(f"[SERVER] ACTIVELY LISTENING AT {self.HOST} ON {self.PORT}")
+        print(f"[SERVER] ACTIVELY LISTENING AT {self.HOST} ON {self.PORT}\n\n")
 
     def __str__(self):
         return f"[SERVER] ACTIVELY LISTENING AT {self.HOST} ON {self.PORT}"
@@ -88,15 +88,18 @@ class Server:
                             print(f'[SERVER] PACKET DROPPED :{data[:32]} \t :{int(data[:32],2)}')
 
         except Exception as e:
-            print(e)
+            # print(e)
             # print('huha')
             self.FILE_OUTPUT.close()
-            if os.path.getsize(self.FILE_PATH) == 0 and self.COMPLETE:
-                print(e)
-                print('CONNECTION TIMED OUT')
-                print("FILE DOWNLOAD FAILED")
-            else:
+            if self.COMPLETE:
                 print('[SERVER] DOWNLOAD COMPLETE')
+
+            else:
+                # print(e)
+                print("\n\n")
+                print('[SERVER] CONNECTION TIMED OUT')
+                print("[SERVER] FILE DOWNLOAD FAILED")
+                
             self.sock.close()
         
 

@@ -26,7 +26,7 @@ class Client:
         self.TIMEOUT = 3
 
     def __str__(self):
-        return f'[CLIENT] : {self.HOSTNAME} running on Port: {self.PORT} \n[CLIENT] Transmitting File:{self.FILE_INPUT}\n[CLIENT] To Server: {self.SERVER_HOST}:{self.SERVER_PORT}\n'
+        return f'[CLIENT] {self.HOSTNAME} running on Port: {self.PORT} \n[CLIENT] Transmitting File:{self.FILE_INPUT}\n[CLIENT] To Server: {self.SERVER_HOST}:{self.SERVER_PORT}\n'
     
     def carry_around_add(self, x, y):
         return ((x+y) & 0xffff) + ((x + y) >> 16)
@@ -109,7 +109,7 @@ class Client:
         
         data = "EOF"
         self.send_packet(data)
-        print("[CLIENT] FILE TRANSFER COMPLETED")
+        print("\n[CLIENT] FILE TRANSFER COMPLETED")
         self.sock.close()
         self.FILE_INPUT.close()
 
