@@ -7,7 +7,7 @@ import socket
 HOSTNAME = socket.gethostname()
 PORT = 5678
 OS = "Mac OS 10.6"
-PATH = "C2"
+PATH = "Client2"
 
 C2 = C.Client(HOSTNAME,PORT,OS,PATH)
 RFC = [

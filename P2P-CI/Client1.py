@@ -9,7 +9,7 @@ HOSTNAME = socket.gethostname()
 PORT = 8081
 OS = "Windows OS 11.6"
 
-PATH = "C1"
+PATH = "Client1"
 
 C1 = C.Client(HOSTNAME, PORT, OS, PATH)
 RFC = [
