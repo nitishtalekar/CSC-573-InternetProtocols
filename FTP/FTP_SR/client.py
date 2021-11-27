@@ -47,7 +47,7 @@ class Client:
         self.sock.sendto(str.encode(data), (self.SERVER_HOST, self.SERVER_PORT))
 
     def retransmit(self):
-        print(int(self.WINDOW[0][:32],2))
+        # print(int(self.WINDOW[0][:32],2))
         self.send_packet(self.WINDOW[0])
         self.WINDOW_TIMEOUT[0] = time.time()
                 
