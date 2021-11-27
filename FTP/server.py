@@ -1,9 +1,6 @@
 import socket
 import time
 import random
-import sys
-import os
-
 
 class Server:
     def __init__(self, PORT, FILE_OUTPUT, PROB_LOSS_SERVICE):
@@ -58,62 +55,31 @@ class Server:
                     print("[SERVER] TRANSMISSION COMPLETE")
                     self.COMPLETE = True
                     break
-                # print()
-                # print(f"[SERVER] Recieved Packet {data[64:]}")
 
-                # print("RECIEVED")
-                # print(f'SEQUENCE NO: {data[:32]}')
-                # print(f'CHECKSUM: {data[32:48]}')
-                # print(f'HEADER TYPE: {data[48:64]}')
-                # print(f'DATA: {data[64:]}')
-
-                
                 computed_checksum = self.checksum_computation(data[:32]+data[48:])
                 computed_checksum = f'{computed_checksum:016b}'
-                # print(computed_checksum)
       
                 if computed_checksum == data[32:48] and data[48:64] == self.DATA_TYPE:
                     if self.SEQ_NO == int(data[:32], 2):
-                        # print('Sending ACK')
                         if self.packet_accepted():
                             self.FILE_OUTPUT.write(str.encode(data[64:]))
-                            # reply
                             header = data[:32]
                             header += '0000000000000000'
                             header += self.ACK_TYPE
 
                             self.send_packet(header, CLIENT_ADDR)
-                            self.SEQ_NO += 1
+                            self.SEQ_NO += len(data[64:])
                         else:
-                            print(f'[SERVER] PACKET DROPPED: {data[:32]} \t :{int(data[:32],2)}')
+                            print(f'[SERVER] Packet Loss, Sequence No: {int(data[:32],2)}')
 
         except Exception as e:
-            # print(e)
-            # print('huha')
             self.FILE_OUTPUT.close()
             if self.COMPLETE:
                 print('[SERVER] DOWNLOAD COMPLETE')
 
             else:
-                # print(e)
                 print("\n\n")
                 print('[SERVER] CONNECTION TIMED OUT')
                 print("[SERVER] FILE DOWNLOAD FAILED")
                 
             self.sock.close()
-        
-
-
-
-# if len(sys.argv) > 1:
-#     # FROM COMMAND LINE
-#     PORT = int(sys.argv[1])
-#     FILE_OUTPUT = sys.argv[2]
-#     PROB_LOSS_SERVICE = float(sys.argv[3])
-# else:
-#     PORT = 7735
-#     FILE_OUTPUT = 'output.txt'
-#     PROB_LOSS_SERVICE = 0.01
-
-# S1 = Server(PORT, FILE_OUTPUT, PROB_LOSS_SERVICE)
-# S1.rdt_rcv()
