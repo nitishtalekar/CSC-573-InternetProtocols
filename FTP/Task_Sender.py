@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import time
 from client import Client
 import socket
+import csv
 
 # TASK 1
 def TASK_1():
@@ -38,6 +39,12 @@ def TASK_1():
 
     print(f"\nList of Delays: \n{list_of_delays}")
     print(f"Average Delays : {average_delay}")
+
+    list_of_delays["Average"] = average_delay
+    with open('N_Delay.csv', 'w') as csv_file:  
+        writer = csv.writer(csv_file)
+        for key, value in list_of_delays.items():
+            writer.writerow([key, value])
 
     canvas = plt.figure(figsize=(12,7))
     plt.xlabel("N Value")
@@ -83,7 +90,13 @@ def TASK_2():
 
     print(f"\nList of Delays: \n{list_of_delays}")
     print(f"Average Delays : {average_delay}")
-    # figure = plt.figure
+
+    list_of_delays["Average"] = average_delay
+    with open('MSS_Delay.csv', 'w') as csv_file:  
+        writer = csv.writer(csv_file)
+        for key, value in list_of_delays.items():
+            writer.writerow([key, value])
+
 
     canvas = plt.figure(figsize=(12,7))
     plt.xlabel("MSS Value")
@@ -128,6 +141,11 @@ def TASK_3():
 
     print(f"\nList of Delays: \n{list_of_delays}")
     print(f"Average Delays : {average_delay}")
+    list_of_delays["Average"] = average_delay
+    with open('ProbLoss_Delay.csv', 'w') as csv_file:  
+        writer = csv.writer(csv_file)
+        for key, value in list_of_delays.items():
+            writer.writerow([key, value])
 
     canvas = plt.figure(figsize=(12,7))
     plt.xlabel("PROB_LOSS Value")
